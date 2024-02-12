@@ -1,11 +1,14 @@
-import { Server } from "socket.io";
 import { SQS_MESSAGE_TYPE } from "../types/sqs";
 import { ChatRepository } from "../models/chat";
 
-export async function processMessage(message: any, io: Server) {
+import { ioClient } from "../server";
+
+export async function processMessage(message: any) {
   switch (message.type) {
     case SQS_MESSAGE_TYPE.NEW_MESSAGE:
-      const chatSockets = await io.to(message.payload.chatId).fetchSockets();
+      const chatSockets = await ioClient
+        .to(message.payload.chatId)
+        .fetchSockets();
 
       const chat = await ChatRepository.findOne({
         relations: {
@@ -32,7 +35,7 @@ export async function processMessage(message: any, io: Server) {
           return;
         }
 
-        io.to(socketId).emit("NOTIFICATION", message.payload);
+        ioClient.to(socketId).emit("NOTIFICATION", message.payload);
       });
 
       break;

@@ -27,6 +27,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
+    "redis": "^4.6.13",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.7.2",
     "sqs-consumer": "^8.1.3",

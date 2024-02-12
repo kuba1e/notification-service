@@ -5,7 +5,7 @@ const queueUrl = process.env.AWS_SQS_QUEUE_URL;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-const app = Consumer.create({
+const consumer = Consumer.create({
   queueUrl,
   handleMessage: async (message) => {},
   sqs: new SQSClient({
@@ -17,4 +17,4 @@ const app = Consumer.create({
   }),
 });
 
-export default app;
+export default consumer;
