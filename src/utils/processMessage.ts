@@ -2,6 +2,8 @@ import { SQS_MESSAGE_TYPE } from "../types/sqs";
 import { ChatRepository } from "../models/chat";
 
 import { ioClient } from "../server";
+import { redisClient } from "../services/redis/redis";
+import { sendEmail } from "../services/email/email";
 
 export async function processMessage(message: any) {
   switch (message.type) {
@@ -12,20 +14,27 @@ export async function processMessage(message: any) {
 
       const chat = await ChatRepository.findOne({
         relations: {
-          users: {
-            communications: true,
-          },
+          users: true,
         },
         where: {
           id: message.payload.chatId,
         },
       });
 
-      const chatUserSocketIds = chat.users
+      const chatUsers = chat.users
         .filter(({ id }) => id !== message.payload.creatorId)
-        .map((user) => user.communications.webSocketId);
+        .map((user) => user.id);
 
-      chatUserSocketIds.forEach((socketId) => {
+      const socketIds = [];
+
+      for (const chatUser of chatUsers) {
+        const socketId = await redisClient.hGet(`${chatUser}`, "webSocketId");
+        socketIds.push(socketId);
+      }
+
+      sendEmail();
+
+      socketIds.forEach((socketId) => {
         const userOpenedChat = chatSockets.find(
           (socket) => socket.id === socketId
         );

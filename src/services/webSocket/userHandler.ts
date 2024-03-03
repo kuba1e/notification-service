@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import { UserRepository } from "../../models/user";
 import { CommunicationsRepository } from "../../models/communications";
+import { redisClient } from "../redis/redis";
 
 export const userHandler = async (io: Server, socket: Socket) => {
   try {
@@ -11,13 +12,9 @@ export const userHandler = async (io: Server, socket: Socket) => {
       if (!err && decoded) {
         socket.join(decoded.id);
 
-        await CommunicationsRepository.upsert(
-          {
-            userId: decoded.id as string,
-            webSocketId: socket.id,
-          },
-          ["userId"]
-        );
+        await redisClient.hSet(`${decoded.id}`, {
+          webSocketId: socket.id,
+        });
       }
     });
   } catch (err) {
